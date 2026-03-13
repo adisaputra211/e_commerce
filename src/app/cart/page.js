@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Header from "@/components/layout/Header";
 import { AuthProvider } from "@/context/AuthContext";
+import { useCart } from "@/context/CartContext";
 import styles from "./cart.module.css";
 
 const formatIDR = (value) => {
@@ -15,26 +16,32 @@ const formatIDR = (value) => {
 };
 
 function CartContent() {
-  const [cartItems, setCartItems] = useState(CART_ITEMS);
+  const { cartItems, updateQuantity, removeItem } = useCart();
+  const [localCartItems, setLocalCartItems] = useState([]);
 
-  const updateQuantity = (id, newQuantity) => {
-    if (newQuantity < 1) return;
-    setCartItems((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, quantity: newQuantity } : item
-      )
-    );
-  };
+  // Force read from localStorage on mount
+  useEffect(() => {
+    const savedCart = localStorage.getItem("cart");
+    if (savedCart) {
+      try {
+        setLocalCartItems(JSON.parse(savedCart));
+      } catch (e) {
+        console.error("Failed to parse cart from localStorage:", e);
+        setLocalCartItems([]);
+      }
+    } else {
+      setLocalCartItems([]);
+    }
+  }, []);
 
-  const removeItem = (id) => {
-    setCartItems((prev) => prev.filter((item) => item.id !== id));
-  };
+  // Use cartItems from context or fallback to localStorage
+  const items = cartItems.length > 0 ? cartItems : localCartItems;
 
-  const subtotal = cartItems.reduce(
+  const subtotal = items.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0
   );
-  const originalTotal = cartItems.reduce(
+  const originalTotal = items.reduce(
     (sum, item) => sum + (item.originalPrice || item.price) * item.quantity,
     0
   );
@@ -42,7 +49,7 @@ function CartContent() {
   const shipping = subtotal > 7500000 ? 0 : 225000;
   const total = subtotal + shipping;
 
-  if (cartItems.length === 0) {
+  if (items.length === 0) {
     return (
       <>
         <Header />
@@ -67,12 +74,12 @@ function CartContent() {
       <div className={styles.cartContainer}>
         <div className={styles.cartInner}>
           <h1 className={styles.pageTitle}>Shopping Cart</h1>
-          <p className={styles.itemCount}>{cartItems.length} item{cartItems.length !== 1 ? "s" : ""} in your cart</p>
+          <p className={styles.itemCount}>{items.length} item{items.length !== 1 ? "s" : ""} in your cart</p>
 
         <div className={styles.cartGrid}>
           {/* Cart Items */}
           <div className={styles.cartItems}>
-            {cartItems.map((item) => (
+            {items.map((item) => (
               <div key={item.id} className={styles.cartItem}>
                 <div className={styles.itemImage}>
                   <img src={item.image} alt={item.name} />
@@ -88,7 +95,7 @@ function CartContent() {
                   <div className={styles.itemActions}>
                     <button
                       className={styles.removeBtn}
-                      onClick={() => removeItem(item.id)}
+                      onClick={() => removeItem(item.id, { color: item.color, storage: item.storage })}
                     >
                       <span className="material-symbols-outlined">delete</span>
                       Remove
@@ -99,13 +106,13 @@ function CartContent() {
                   <label>Quantity:</label>
                   <div className={styles.quantityControls}>
                     <button
-                      onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                      onClick={() => updateQuantity(item.id, item.quantity - 1, { color: item.color, storage: item.storage })}
                       disabled={item.quantity <= 1}
                     >
                       <span className="material-symbols-outlined">remove</span>
                     </button>
                     <span className={styles.quantityValue}>{item.quantity}</span>
-                    <button onClick={() => updateQuantity(item.id, item.quantity + 1)}>
+                    <button onClick={() => updateQuantity(item.id, item.quantity + 1, { color: item.color, storage: item.storage })}>
                       <span className="material-symbols-outlined">add</span>
                     </button>
                   </div>
@@ -169,36 +176,6 @@ function CartContent() {
     </>
   );
 }
-
-const CART_ITEMS = [
-  {
-    id: 1,
-    name: "Samsung Galaxy S24 Ultra 256GB - Titanium Black",
-    price: 18599000,
-    originalPrice: 21699000,
-    image: "https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?w=200&h=200&fit=crop",
-    quantity: 1,
-    category: "Smartphone",
-  },
-  {
-    id: 2,
-    name: "Apple AirPods Pro 2nd Gen with MagSafe",
-    price: 3859000,
-    originalPrice: null,
-    image: "https://images.unsplash.com/photo-1606841837239-c5a1a4a07af7?w=200&h=200&fit=crop",
-    quantity: 2,
-    category: "Audio",
-  },
-  {
-    id: 3,
-    name: "iPad Pro M2 12.9\" WiFi 256GB - Space Gray",
-    price: 15489000,
-    originalPrice: 18589000,
-    image: "https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=200&h=200&fit=crop",
-    quantity: 1,
-    category: "Tablet",
-  },
-];
 
 export default function CartPage() {
   return (

@@ -1,10 +1,42 @@
+
+"use client";
+
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { products } from "@/data/products";
-import { categories } from "@/data/categories";
 import ProductCard from "@/components/ui/ProductCard";
 import styles from "./page.module.css";
 
 export default function Home() {
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const [productsRes, categoriesRes] = await Promise.all([
+          fetch('/api/products?active=true'),
+          fetch('/api/categories'),
+        ]);
+        
+        if (productsRes.ok) {
+          const productsData = await productsRes.json();
+          setProducts(productsData);
+        }
+        
+        if (categoriesRes.ok) {
+          const categoriesData = await categoriesRes.json();
+          setCategories(categoriesData);
+        }
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, []);
+
   return (
     <main className={styles.main}>
       {/* Hero Banner */}
@@ -41,21 +73,27 @@ export default function Home() {
         <div className={styles.sectionHeader}>
           <h2 className={styles.sectionTitle}>Shop by Category</h2>
         </div>
-        <div className={styles.categoriesGrid}>
-          {categories.map((cat) => (
-            <Link
-              key={cat.id}
-              href={`/listing?category=${cat.id}`}
-              className={styles.categoryItem}
-            >
-              <div className={styles.categoryIcon}>
-                <span className="material-symbols-outlined">{cat.icon}</span>
-              </div>
-              <span className={styles.categoryName}>{cat.name}</span>
-              <span className={styles.categoryDesc}>{cat.description}</span>
-            </Link>
-          ))}
-        </div>
+        {categories.length === 0 ? (
+          <div className={styles.emptyCategories}>
+            <p>No categories available yet.</p>
+          </div>
+        ) : (
+          <div className={styles.categoriesGrid}>
+            {categories.map((cat) => (
+              <Link
+                key={cat.id}
+                href={`/listing?category=${cat.slug}`}
+                className={styles.categoryItem}
+              >
+                <div className={styles.categoryIcon}>
+                  <span className="material-symbols-outlined">{cat.icon || 'category'}</span>
+                </div>
+                <span className={styles.categoryName}>{cat.name}</span>
+                <span className={styles.categoryDesc}>{cat.description}</span>
+              </Link>
+            ))}
+          </div>
+        )}
       </section>
 
       {/* Recommended Products */}
@@ -70,11 +108,22 @@ export default function Home() {
             <span className="material-symbols-outlined">chevron_right</span>
           </Link>
         </div>
-        <div className={styles.productsGrid}>
-          {products.slice(0, 8).map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
+        {loading ? (
+          <div className={styles.loadingContainer}>
+            <div className={styles.loadingSpinner}></div>
+            <p>Loading products...</p>
+          </div>
+        ) : products.length === 0 ? (
+          <div className={styles.emptyProducts}>
+            <p>No products available yet. Check back soon!</p>
+          </div>
+        ) : (
+          <div className={styles.productsGrid}>
+            {products.slice(0, 8).map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        )}
       </section>
     </main>
   );

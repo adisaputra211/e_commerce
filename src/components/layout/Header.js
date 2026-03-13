@@ -3,14 +3,22 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { useCart } from "@/context/CartContext";
 import { useState, useEffect, useRef } from "react";
 
 export default function Header() {
   const pathname = usePathname();
   const router = useRouter();
   const { user, isAuthenticated, isLoading, logout } = useAuth();
+  const { getCartCount } = useCart();
   const dropdownRef = useRef(null);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [cartCount, setCartCount] = useState(0);
+
+  // Update cart count when cart changes
+  useEffect(() => {
+    setCartCount(getCartCount());
+  }, [getCartCount]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -70,7 +78,7 @@ export default function Header() {
         <div className="header-actions">
           <Link href="/cart" className="action-btn cart-btn">
             <span className="material-symbols-outlined">shopping_cart</span>
-            <span className="cart-badge">3</span>
+            {cartCount > 0 && <span className="cart-badge">{cartCount}</span>}
           </Link>
           <div className="action-divider"></div>
 

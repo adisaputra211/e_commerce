@@ -3,7 +3,6 @@
 import { useState, useEffect, Suspense, useMemo } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { products } from "@/data/products";
 import { categories } from "@/data/categories";
 import styles from "./listing.module.css";
 
@@ -20,10 +19,31 @@ function ListingContent() {
   const router = useRouter();
   const categoryParam = searchParams.get("category");
 
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState(categoryParam || "");
   const [sortBy, setSortBy] = useState("popularity");
   const [currentPage, setCurrentPage] = useState(1);
   const productsPerPage = 12;
+
+  // Fetch products from database
+  useEffect(() => {
+    async function fetchProducts() {
+      try {
+        const categoryQuery = categoryParam ? `&category=${categoryParam}` : '';
+        const response = await fetch(`/api/products?active=true${categoryQuery}`);
+        if (response.ok) {
+          const data = await response.json();
+          setProducts(data);
+        }
+      } catch (error) {
+        console.error('Error fetching products:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchProducts();
+  }, [categoryParam]);
 
   // Update category when URL param changes
   useEffect(() => {
@@ -43,7 +63,7 @@ function ListingContent() {
       const matchesCategory = !selectedCategory || product.category === selectedCategory;
       return matchesCategory;
     });
-  }, [selectedCategory]);
+  }, [selectedCategory, products]);
 
   // Sort products
   const sortedProducts = useMemo(() => {
@@ -107,6 +127,17 @@ function ListingContent() {
   };
 
   const visiblePages = getVisiblePages();
+
+  if (loading) {
+    return (
+      <div className={styles.listingContainer}>
+        <div className={styles.loadingContainer}>
+          <div className={styles.loadingSpinner}></div>
+          <p>Loading products...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.listingContainer}>

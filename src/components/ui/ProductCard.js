@@ -9,12 +9,15 @@ const formatIDR = (value) => {
 };
 
 export default function ProductCard({ product }) {
+  // Use product.image, or first image from images array, or placeholder
+  const displayImage = product.image || (product.images && product.images.length > 0 ? product.images[0] : '/placeholder.jpg');
+  
   return (
     <Link href={`/product/${product.id}`} className="product-card-link">
       <div className="product-card">
         <div className="product-image-wrapper">
           <img
-            src={product.image}
+            src={displayImage}
             alt={product.name}
             className="product-image"
           />
