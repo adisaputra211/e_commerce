@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense, useMemo } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { categories } from "@/data/categories";
+
 import styles from "./listing.module.css";
 
 const formatIDR = (value) => {
@@ -20,6 +20,7 @@ function ListingContent() {
   const categoryParam = searchParams.get("category");
 
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState(categoryParam || "");
   const [sortBy, setSortBy] = useState("popularity");
@@ -28,21 +29,30 @@ function ListingContent() {
 
   // Fetch products from database
   useEffect(() => {
-    async function fetchProducts() {
+    async function fetchData() {
       try {
         const categoryQuery = categoryParam ? `&category=${categoryParam}` : '';
-        const response = await fetch(`/api/products?active=true${categoryQuery}`);
-        if (response.ok) {
-          const data = await response.json();
+        const [productsRes, categoriesRes] = await Promise.all([
+          fetch(`/api/products?active=true${categoryQuery}`),
+          fetch('/api/categories')
+        ]);
+        
+        if (productsRes.ok) {
+          const data = await productsRes.json();
           setProducts(data);
         }
+        
+        if (categoriesRes.ok) {
+          const catData = await categoriesRes.json();
+          setCategories(catData);
+        }
       } catch (error) {
-        console.error('Error fetching products:', error);
+        console.error('Error fetching data:', error);
       } finally {
         setLoading(false);
       }
     }
-    fetchProducts();
+    fetchData();
   }, [categoryParam]);
 
   // Update category when URL param changes

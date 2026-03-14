@@ -3,7 +3,7 @@
 import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
-import { categories } from "@/data/categories";
+
 import styles from "./products.module.css";
 
 function ProductsContent() {
@@ -18,25 +18,35 @@ function ProductsContent() {
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [stockFilter, setStockFilter] = useState("all");
+  const [categoryList, setCategoryList] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // Fetch products from database
   useEffect(() => {
-    async function fetchProducts() {
+    async function fetchData() {
       try {
-        const response = await fetch(`/api/products?t=${Date.now()}`);
-        if (response.ok) {
-          const products = await response.json();
+        const [productsRes, categoriesRes] = await Promise.all([
+          fetch(`/api/products?t=${Date.now()}`),
+          fetch('/api/categories')
+        ]);
+
+        if (productsRes.ok) {
+          const products = await productsRes.json();
           setProductList(products);
           setFilteredProducts(products);
         }
+
+        if (categoriesRes.ok) {
+          const categoriesData = await categoriesRes.json();
+          setCategoryList(categoriesData);
+        }
       } catch (error) {
-        console.error('Error fetching products:', error);
+        console.error('Error fetching data:', error);
       } finally {
         setLoading(false);
       }
     }
-    fetchProducts();
+    fetchData();
   }, []);
 
   useEffect(() => {
@@ -193,9 +203,7 @@ function ProductsContent() {
               className={styles.filterSelect}
             >
               <option value="all">All Categories</option>
-              {categories.map(cat => (
-                <option key={cat.id} value={cat.id}>{cat.name}</option>
-              ))}
+          categories={categoryList}
             </select>
 
             <select 
@@ -246,7 +254,7 @@ function ProductsContent() {
                       </td>
                     <td>
                       <span className={styles.categoryBadge}>
-                        {categories.find(c => c.id === product.category)?.name || product.category}
+                        {categoryList.find(c => c.id === product.category)?.name || product.category}
                       </span>
                     </td>
                     <td>
