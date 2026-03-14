@@ -8,10 +8,10 @@ import { AuthProvider } from "@/context/AuthContext";
 import styles from "./adminLayout.module.css";
 
 const NAV_ITEMS = [
-  { href: "/admin/dashboard", label: "Dashboard", icon: "dashboard" },
-  { href: "/admin/products", label: "Products", icon: "inventory_2" },
-  { href: "/admin/categories", label: "Categories", icon: "category" },
-  { href: "/admin/orders", label: "Orders", icon: "shopping_cart" },
+  { href: "/admin/dashboard", label: "Dashboard", icon: "dashboard", badge: null },
+  { href: "/admin/products", label: "Products", icon: "inventory_2", badge: null },
+  { href: "/admin/categories", label: "Categories", icon: "category", badge: null },
+  { href: "/admin/orders", label: "Orders", icon: "shopping_cart", badge: "3" },
 ];
 
 function AdminSidebar({ children }) {
@@ -24,16 +24,19 @@ function AdminSidebar({ children }) {
       {/* Sidebar */}
       <aside className={`${styles.sidebar} ${sidebarOpen ? styles.sidebarOpen : styles.sidebarClosed}`}>
         <div className={styles.sidebarHeader}>
-          <Link href="/admin/dashboard" className={styles.logo}>
-            <span className="material-symbols-outlined">shopping_bag</span>
-            {sidebarOpen && <span className={styles.logoText}>ShopX Admin</span>}
-          </Link>
+          {sidebarOpen && (
+            <Link href="/admin/dashboard" className={styles.logo}>
+              <span className="material-symbols-outlined">shopping_bag</span>
+              <span className={styles.logoText}>ShopX Admin</span>
+            </Link>
+          )}
           <button
             className={styles.toggleBtn}
             onClick={() => setSidebarOpen(!sidebarOpen)}
+            aria-label={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
           >
             <span className="material-symbols-outlined">
-              {sidebarOpen ? "close_fullscreen" : "open_in_full"}
+              {sidebarOpen ? "menu_open" : "menu"}
             </span>
           </button>
         </div>
@@ -48,7 +51,14 @@ function AdminSidebar({ children }) {
                 className={`${styles.navLink} ${isActive ? styles.active : ""}`}
               >
                 <span className="material-symbols-outlined">{item.icon}</span>
-                {sidebarOpen && <span>{item.label}</span>}
+                {sidebarOpen && (
+                  <>
+                    <span>{item.label}</span>
+                    {item.badge && (
+                      <span className={styles.badge}>{item.badge}</span>
+                    )}
+                  </>
+                )}
               </Link>
             );
           })}

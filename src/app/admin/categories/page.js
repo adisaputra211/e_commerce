@@ -224,58 +224,60 @@ function CategoryModal({ category, onClose, onSave, icons }) {
         </div>
 
         <form onSubmit={handleSubmit} className={styles.form}>
-          <div className={styles.formGroup}>
-            <label className={styles.label}>Category Name *</label>
-            <input
-              type="text"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className={styles.input}
-              required
-              placeholder="e.g., Smartphones"
-            />
-          </div>
-
-          <div className={styles.formGroup}>
-            <label className={styles.label}>Slug *</label>
-            <input
-              type="text"
-              value={formData.slug}
-              onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-              className={styles.input}
-              required
-              pattern="[a-z0-9-]+"
-              placeholder="smartphones"
-            />
-            <span className={styles.hint}>URL-friendly name (lowercase, hyphens only)</span>
-          </div>
-
-          <div className={styles.formGroup}>
-            <label className={styles.label}>Icon *</label>
-            <div className={styles.iconGrid}>
-              {icons.map((icon) => (
-                <button
-                  key={icon.id}
-                  type="button"
-                  className={`${styles.iconOption} ${formData.icon === icon.id ? styles.selected : ""}`}
-                  onClick={() => setFormData({ ...formData, icon: icon.id })}
-                >
-                  <span className="material-symbols-outlined">{icon.id}</span>
-                  <span className={styles.iconLabel}>{icon.label}</span>
-                </button>
-              ))}
+          <div className={styles.modalBody}>
+            <div className={styles.formGroup}>
+              <label className={styles.label}>Category Name *</label>
+              <input
+                type="text"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                className={styles.input}
+                required
+                placeholder="e.g., Smartphones"
+              />
             </div>
-          </div>
 
-          <div className={styles.formGroup}>
-            <label className={styles.label}>Description</label>
-            <textarea
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              className={styles.textarea}
-              rows="3"
-              placeholder="Brief description of this category..."
-            />
+            <div className={styles.formGroup}>
+              <label className={styles.label}>Slug *</label>
+              <input
+                type="text"
+                value={formData.slug}
+                onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+                className={styles.input}
+                required
+                pattern="[a-z0-9-]+"
+                placeholder="smartphones"
+              />
+              <span className={styles.hint}>URL-friendly name (lowercase, hyphens only)</span>
+            </div>
+
+            <div className={styles.formGroup}>
+              <label className={styles.label}>Icon *</label>
+              <div className={styles.iconGrid}>
+                {icons.map((icon) => (
+                  <button
+                    key={icon.id}
+                    type="button"
+                    className={`${styles.iconOption} ${formData.icon === icon.id ? styles.selected : ""}`}
+                    onClick={() => setFormData({ ...formData, icon: icon.id })}
+                  >
+                    <span className="material-symbols-outlined">{icon.id}</span>
+                    <span className={styles.iconLabel}>{icon.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className={styles.formGroup}>
+              <label className={styles.label}>Description</label>
+              <textarea
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                className={styles.textarea}
+                rows="3"
+                placeholder="Brief description of this category..."
+              />
+            </div>
           </div>
 
           <div className={styles.modalFooter}>
